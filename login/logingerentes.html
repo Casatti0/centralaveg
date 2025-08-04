@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Login Gerentes</title>
+  <link rel="stylesheet" href="login-gerentes.css">
+</head>
+<body class="loginger-fundo">
+  <div class="loginger-box">
+    <form id="loginForm">
+      <label for="email">E‑mail</label>
+      <input type="text" id="email" required>
+      <label for="senha">Senha</label>
+      <input type="password" id="senha" required>
+      <button type="submit" class="loginger-botao">Login</button>
+      <p id="mensagemErro"></p>
+    </form>
+  </div>
+  <script>
+    const usuarios = [{ email: "admin@avegui.com", senha: "admin2025" }];
+    document.getElementById("loginForm").addEventListener("submit", function(e){
+      e.preventDefault();
+      const email = document.getElementById("email").value;
+      const senha = document.getElementById("senha").value;
+      const valid = usuarios.find(u=>u.email===email&&u.senha===senha);
+      if(valid){
+        localStorage.setItem("tipoUsuario","gerente");
+        localStorage.setItem("emailUsuario",email);
+        window.location.href="sistema.html";
+      } else {
+        document.getElementById("mensagemErro").textContent="E‑mail ou senha incorretos.";
+      }
+    });
+  </script>
+</body>
+</html>

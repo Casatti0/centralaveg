@@ -1,0 +1,51 @@
+.loginpg-fundo {
+  background-image: url('imagens/fundo-login.jpeg');
+  background-size: cover;
+  background-position: center;
+  height: 100vh;
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: Arial, sans-serif;
+}
+.loginpg-box {
+  background: white;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  width: 300px;
+}
+.loginpg-box label {
+  display: block;
+  margin-bottom: 5px;
+  color: #d35400;
+  font-weight: bold;
+}
+.loginpg-box input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 20px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #eef5ff;
+}
+.loginpg-botao {
+  width: 100%;
+  padding: 10px;
+  background: white;
+  color: #d35400;
+  border: 1px solid #d35400;
+  border-radius: 5px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+.loginpg-botao:hover {
+  background: #d35400;
+  color: white;
+}
+#mensagemErro {
+  color: red;
+  margin-top: 10px;
+}

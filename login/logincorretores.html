@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Login Corretores</title>
+  <link rel="stylesheet" href="login-corretores.css">
+</head>
+<body class="loginpg-fundo">
+  <div class="loginpg-box">
+    <form id="loginForm">
+      <label for="email">E‑mail</label>
+      <input type="text" id="email" required>
+      <label for="senha">Senha</label>
+      <input type="password" id="senha" required>
+      <button type="submit" class="loginpg-botao">Login</button>
+      <p id="mensagemErro"></p>
+    </form>
+  </div>
+  <script>
+    const usuarios = [
+      { email: "corretor1@avegui.com", senha: "123456" },
+      { email: "corretor2@avegui.com", senha: "senha123" }
+    ];
+    document.getElementById("loginForm").addEventListener("submit", function(e){
+      e.preventDefault();
+      const email = document.getElementById("email").value;
+      const senha = document.getElementById("senha").value;
+      const valid = usuarios.find(u=>u.email===email&&u.senha===senha);
+      if(valid){
+        localStorage.setItem("tipoUsuario","corretor");
+        localStorage.setItem("emailUsuario",email);
+        window.location.href="sistema.html";
+      } else {
+        document.getElementById("mensagemErro").textContent="E‑mail ou senha incorretos.";
+      }
+    });
+  </script>
+</body>
+</html>

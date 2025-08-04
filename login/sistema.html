@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Sistema</title>
+  <link rel="stylesheet" href="sistema-style.css">
+</head>
+<body class="sis-fundo">
+  <div class="sis-topo">
+    <span id="emailUsuario"></span>
+    <button class="sis-sair" onclick="sair()">Sair</button>
+  </div>
+
+  <div class="sis-container">
+    <div class="sis-botoes">
+      <button class="sis-botao" onclick="mostrarMenu()">Menu</button>
+      <button class="sis-botao" onclick="mostrarModulos()">Módulos</button>
+    </div>
+
+    <!-- MENU -->
+    <div id="areaMenu" class="sis-conteudo">
+      <h3>Menu</h3>
+      <p id="p1" contenteditable="false">Parágrafo 1</p>
+      <p id="p2" contenteditable="false">Parágrafo 2</p>
+      <p id="p3" contenteditable="false">Parágrafo 3</p>
+    </div>
+
+    <!-- MÓDULOS -->
+    <div id="areaModulos" class="sis-conteudo" style="display:none;">
+      <h3>Módulos em PDF</h3>
+
+      <div id="uploadGerente" style="display:none; margin-bottom:15px;">
+        <input type="file" id="inputPdf" accept="application/pdf" style="display: none;">
+        <button class="sis-botao" onclick="document.getElementById('inputPdf').click()">Adicionar PDF</button>
+      </div>
+
+      <div id="listaModulos"></div>
+    </div>
+  </div>
+
+  <script>
+    const tipo = localStorage.getItem("tipoUsuario");
+    const email = localStorage.getItem("emailUsuario");
+
+    if (!tipo || !email) window.location.href = "index.html";
+    document.getElementById("emailUsuario").textContent = email;
+
+    if (tipo === "gerente") {
+      document.getElementById("uploadGerente").style.display = "block";
+      document.querySelectorAll("#areaMenu p").forEach(p => {
+        p.contentEditable = true;
+        p.addEventListener("input", salvarParags);
+      });
+    }
+
+    function mostrarMenu() {
+      document.getElementById("areaMenu").style.display = "block";
+      document.getElementById("areaModulos").style.display = "none";
+    }
+
+    function mostrarModulos() {
+      document.getElementById("areaMenu").style.display = "none";
+      document.getElementById("areaModulos").style.display = "block";
+    }
+
+    function salvarParags() {
+      document.querySelectorAll("#areaMenu p").forEach(p => {
+        localStorage.setItem("p_" + p.id, p.innerText);
+      });
+    }
+
+    function carregarParags() {
+      document.querySelectorAll("#areaMenu p").forEach(p => {
+        const t = localStorage.getItem("p_" + p.id);
+        if (t) p.innerText = t;
+      });
+    }
+
+    function criarModulo(nome, dados) {
+      const m = document.createElement("div");
+      m.className = "sis-modulo";
+
+      const tit = document.createElement("h4");
+      tit.textContent = nome;
+      m.appendChild(tit);
+
+      const iframe = document.createElement("iframe");
+      iframe.src = dados;
+      iframe.className = "sis-pdf";
+      iframe.setAttribute("sandbox", "allow-same-origin allow-scripts");
+      m.appendChild(iframe);
+
+      if (tipo === "gerente") {
+        const btnExcluir = document.createElement("button");
+        btnExcluir.textContent = "Excluir";
+        btnExcluir.className = "sis-excluir";
+        btnExcluir.onclick = () => {
+          m.remove();
+          salvarMods();
+        };
+        m.appendChild(btnExcluir);
+      }
+
+      document.getElementById("listaModulos").appendChild(m);
+    }
+
+    function salvarMods() {
+      const arr = [];
+      document.querySelectorAll(".sis-modulo").forEach(m => {
+        arr.push({
+          nome: m.querySelector("h4").textContent,
+          dados: m.querySelector("iframe").src
+        });
+      });
+      localStorage.setItem("mod_salvos", JSON.stringify(arr));
+    }
+
+    function carregarMods() {
+      const mods = JSON.parse(localStorage.getItem("mod_salvos") || "[]");
+      mods.forEach(mod => criarModulo(mod.nome, mod.dados));
+    }
+
+    // Listener para upload automático
+    function criarModulo(nome, src) {
+  const m = document.createElement("div");
+  m.className = "sis-modulo";
+
+  const tit = document.createElement("h4");
+  tit.textContent = nome;
+  m.appendChild(tit);
+
+  const iframe = document.createElement("iframe");
+  iframe.src = src;
+  iframe.className = "sis-pdf";
+  // sandbox leve, com script+same-origin para exibir
+  iframe.setAttribute("sandbox", "allow-same-origin allow-scripts");
+  m.appendChild(iframe);
+
+  // botão excluir e append...
+}
+
+    function sair() {
+      localStorage.clear();
+      window.location.href = "index.html";
+    }
+
+    carregarParags();
+    carregarMods();
+  </script>
+</body>
+</html>
