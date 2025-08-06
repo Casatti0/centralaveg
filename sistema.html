@@ -121,23 +121,71 @@
     }
 
     // Listener para upload automático
-    function criarModulo(nome, src) {
+    function criarModulo(nome, dados) {
   const m = document.createElement("div");
   m.className = "sis-modulo";
 
+  // Cabeçalho com título e botão de expandir
+  const header = document.createElement("div");
+  header.style.display = "flex";
+  header.style.justifyContent = "space-between";
+  header.style.alignItems = "center";
+  header.style.cursor = "pointer";
+
   const tit = document.createElement("h4");
   tit.textContent = nome;
-  m.appendChild(tit);
+  tit.style.margin = 0;
 
+  const seta = document.createElement("span");
+  seta.textContent = "▶"; // seta para direita inicialmente
+  seta.style.fontSize = "20px";
+
+  header.appendChild(tit);
+  header.appendChild(seta);
+  m.appendChild(header);
+
+  // PDF embutido (inicialmente escondido)
   const iframe = document.createElement("iframe");
-  iframe.src = src;
+  iframe.src = dados;
   iframe.className = "sis-pdf";
-  // sandbox leve, com script+same-origin para exibir
   iframe.setAttribute("sandbox", "allow-same-origin allow-scripts");
+  iframe.style.display = "none"; // começa escondido
   m.appendChild(iframe);
 
-  // botão excluir e append...
+  // Toggle do iframe
+  header.onclick = () => {
+    const aberto = iframe.style.display === "block";
+    iframe.style.display = aberto ? "none" : "block";
+    seta.textContent = aberto ? "▶" : "🔽";
+  };
+
+  // Botão de excluir (se gerente)
+  if (tipo === "gerente") {
+    const btnExcluir = document.createElement("button");
+    btnExcluir.textContent = "Excluir";
+    btnExcluir.className = "sis-excluir";
+    btnExcluir.onclick = () => {
+      m.remove();
+      salvarMods();
+    };
+    m.appendChild(btnExcluir);
+  }
+
+  document.getElementById("listaModulos").appendChild(m);
 }
+document.getElementById("inputPdf").addEventListener("change", function () {
+  const file = this.files[0];
+  if (file && file.type === "application/pdf") {
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      criarModulo(file.name, e.target.result);
+      salvarMods(); // salva no localStorage
+    };
+    reader.readAsDataURL(file); // converte PDF em base64
+  }
+});
+
+  // botão excluir e append..
 
     function sair() {
       localStorage.clear();
