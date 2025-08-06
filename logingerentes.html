@@ -3,33 +3,56 @@
 <head>
   <meta charset="UTF-8">
   <title>Login Gerentes</title>
-  <link rel="stylesheet" href="login-gerentes.css">
+  <link rel="stylesheet" href="login-corretores.css">
 </head>
-<body class="loginger-fundo">
-  <div class="loginger-box">
+<body class="loginpg-fundo">
+  <div class="loginpg-box">
     <form id="loginForm">
       <label for="email">E‑mail</label>
-      <input type="text" id="email" required>
+      <input type="email" id="email" required>
       <label for="senha">Senha</label>
       <input type="password" id="senha" required>
-      <button type="submit" class="loginger-botao">Login</button>
+      <button type="submit" class="loginpg-botao">Login</button>
       <p id="mensagemErro"></p>
     </form>
   </div>
+
+  <!-- SDK do Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+
   <script>
-    const usuarios = [{ email: "admin@avegui.com", senha: "admin2025" }];
-    document.getElementById("loginForm").addEventListener("submit", function(e){
+    // SEU firebaseConfig (verifique se não trocou nenhum dado!)
+    const firebaseConfig = {
+      apiKey: "AIzaSyBazO7oV44CG87EGEbz2W29nj1Fj48CCHM",
+      authDomain: "central-avegui.firebaseapp.com",
+      projectId: "central-avegui",
+      storageBucket: "central-avegui.appspot.com",
+      messagingSenderId: "1012641330425",
+      appId: "1:1012641330425:web:b485d941c6907171da1e28"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+
+    const auth = firebase.auth();
+
+    document.getElementById("loginForm").addEventListener("submit", function(e) {
       e.preventDefault();
+
       const email = document.getElementById("email").value;
       const senha = document.getElementById("senha").value;
-      const valid = usuarios.find(u=>u.email===email&&u.senha===senha);
-      if(valid){
-        localStorage.setItem("tipoUsuario","gerente");
-        localStorage.setItem("emailUsuario",email);
-        window.location.href="sistema.html";
-      } else {
-        document.getElementById("mensagemErro").textContent="E‑mail ou senha incorretos.";
-      }
+      const erro = document.getElementById("mensagemErro");
+
+      auth.signInWithEmailAndPassword(email, senha)
+        .then((userCredential) => {
+          localStorage.setItem("tipoUsuario", "gerente"); // Alterado para gerente
+          localStorage.setItem("emailUsuario", email);
+          window.location.href = "sistema.html";
+        })
+        .catch((error) => {
+          erro.textContent = "Usuário ou senha incorretos.";
+          console.error("Erro Firebase:", error.code, error.message);
+        });
     });
   </script>
 </body>

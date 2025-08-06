@@ -10,190 +10,146 @@
     <span id="emailUsuario"></span>
     <button class="sis-sair" onclick="sair()">Sair</button>
   </div>
-
   <div class="sis-container">
     <div class="sis-botoes">
       <button class="sis-botao" onclick="mostrarMenu()">Menu</button>
       <button class="sis-botao" onclick="mostrarModulos()">Módulos</button>
     </div>
-
-    <!-- MENU -->
     <div id="areaMenu" class="sis-conteudo">
       <h3>Menu</h3>
       <p id="p1" contenteditable="false">Parágrafo 1</p>
       <p id="p2" contenteditable="false">Parágrafo 2</p>
       <p id="p3" contenteditable="false">Parágrafo 3</p>
     </div>
-
-    <!-- MÓDULOS -->
     <div id="areaModulos" class="sis-conteudo" style="display:none;">
       <h3>Módulos em PDF</h3>
-
       <div id="uploadGerente" style="display:none; margin-bottom:15px;">
         <input type="file" id="inputPdf" accept="application/pdf" style="display: none;">
         <button class="sis-botao" onclick="document.getElementById('inputPdf').click()">Adicionar PDF</button>
       </div>
-
       <div id="listaModulos"></div>
     </div>
   </div>
 
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js"></script>
+
   <script>
-    const tipo = localStorage.getItem("tipoUsuario");
-    const email = localStorage.getItem("emailUsuario");
+    const firebaseConfig = {
+      apiKey: "AIzaSyBazO7oV44CG87EGEbz2W29nj1Fj48CCHM",
+      authDomain: "central-avegui.firebaseapp.com",
+      projectId: "central-avegui",
+      storageBucket: "central-avegui.firebasestorage.app",
+      messagingSenderId: "1012641330425",
+      appId: "1:1012641330425:web:b485d941c6907171da1e28"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+    const storage = firebase.storage();
 
-    if (!tipo || !email) window.location.href = "index.html";
-    document.getElementById("emailUsuario").textContent = email;
-
-    if (tipo === "gerente") {
-      document.getElementById("uploadGerente").style.display = "block";
-      document.querySelectorAll("#areaMenu p").forEach(p => {
-        p.contentEditable = true;
-        p.addEventListener("input", salvarParags);
-      });
-    }
+    auth.onAuthStateChanged(user => {
+      if (!user) return window.location.href = "index.html";
+      document.getElementById("emailUsuario").textContent = user.email;
+      carregarParags(user.email);
+      carregarMods(user.email);
+      if (localStorage.getItem("tipoUsuario") === "gerente") {
+        document.getElementById("uploadGerente").style.display = "block";
+        document.querySelectorAll("#areaMenu p").forEach(p => {
+          p.contentEditable = true;
+          p.addEventListener("input", () => salvarParags(user.email));
+        });
+      }
+    });
 
     function mostrarMenu() {
       document.getElementById("areaMenu").style.display = "block";
       document.getElementById("areaModulos").style.display = "none";
     }
-
     function mostrarModulos() {
       document.getElementById("areaMenu").style.display = "none";
       document.getElementById("areaModulos").style.display = "block";
     }
 
-    function salvarParags() {
-      document.querySelectorAll("#areaMenu p").forEach(p => {
-        localStorage.setItem("p_" + p.id, p.innerText);
-      });
+    function salvarParags(email) {
+      const p1 = document.getElementById("p1").innerText;
+      const p2 = document.getElementById("p2").innerText;
+      const p3 = document.getElementById("p3").innerText;
+      db.collection("paragrafos").doc(email).set({ p1, p2, p3 });
     }
 
-    function carregarParags() {
-      document.querySelectorAll("#areaMenu p").forEach(p => {
-        const t = localStorage.getItem("p_" + p.id);
-        if (t) p.innerText = t;
-      });
+    async function carregarParags(email) {
+      const doc = await db.collection("paragrafos").doc(email).get();
+      if (doc.exists) {
+        const { p1, p2, p3 } = doc.data();
+        document.getElementById("p1").innerText = p1 || "";
+        document.getElementById("p2").innerText = p2 || "";
+        document.getElementById("p3").innerText = p3 || "";
+      }
     }
 
-    function criarModulo(nome, dados) {
+    function criarModulo(nome, url) {
       const m = document.createElement("div");
       m.className = "sis-modulo";
-
-      const tit = document.createElement("h4");
-      tit.textContent = nome;
-      m.appendChild(tit);
-
+      const header = document.createElement("div");
+      header.style = "display:flex;justify-content:space-between;align-items:center;cursor:pointer";
+      const tit = document.createElement("h4"); tit.textContent = nome; tit.style.margin="0";
+      const seta = document.createElement("span"); seta.textContent = "▶"; seta.style.fontSize="20px";
+      header.append(tit, seta);
+      m.append(header);
       const iframe = document.createElement("iframe");
-      iframe.src = dados;
-      iframe.className = "sis-pdf";
+      iframe.src = url; iframe.className = "sis-pdf";
       iframe.setAttribute("sandbox", "allow-same-origin allow-scripts");
-      m.appendChild(iframe);
-
-      if (tipo === "gerente") {
-        const btnExcluir = document.createElement("button");
-        btnExcluir.textContent = "Excluir";
-        btnExcluir.className = "sis-excluir";
-        btnExcluir.onclick = () => {
-          m.remove();
-          salvarMods();
-        };
-        m.appendChild(btnExcluir);
+      iframe.style.display = "none";
+      m.append(iframe);
+      header.onclick = () => {
+        const aberto = iframe.style.display === "block";
+        iframe.style.display = aberto ? "none" : "block";
+        seta.textContent = aberto ? "▶" : "🔽";
+      };
+      if (localStorage.getItem("tipoUsuario") === "gerente") {
+        const btn = document.createElement("button");
+        btn.textContent = "Excluir"; btn.className = "sis-excluir";
+        btn.onclick = () => { m.remove(); salvarMods(email); };
+        m.append(btn);
       }
-
-      document.getElementById("listaModulos").appendChild(m);
+      document.getElementById("listaModulos").append(m);
     }
 
-    function salvarMods() {
+    async function salvarMods(email) {
       const arr = [];
       document.querySelectorAll(".sis-modulo").forEach(m => {
-        arr.push({
-          nome: m.querySelector("h4").textContent,
-          dados: m.querySelector("iframe").src
-        });
+        arr.push({ nome: m.querySelector("h4").textContent, dados: m.querySelector("iframe").src });
       });
-      localStorage.setItem("mod_salvos", JSON.stringify(arr));
+      await db.collection("modulos").doc(email).set({ mods: arr });
     }
 
-    function carregarMods() {
-      const mods = JSON.parse(localStorage.getItem("mod_salvos") || "[]");
-      mods.forEach(mod => criarModulo(mod.nome, mod.dados));
+    async function carregarMods(email) {
+      const doc = await db.collection("modulos").doc(email).get();
+      if (doc.exists) {
+        const { mods } = doc.data();
+        mods.forEach(mod => criarModulo(mod.nome, mod.dados));
+      }
     }
 
-    // Listener para upload automático
-    function criarModulo(nome, dados) {
-  const m = document.createElement("div");
-  m.className = "sis-modulo";
-
-  // Cabeçalho com título e botão de expandir
-  const header = document.createElement("div");
-  header.style.display = "flex";
-  header.style.justifyContent = "space-between";
-  header.style.alignItems = "center";
-  header.style.cursor = "pointer";
-
-  const tit = document.createElement("h4");
-  tit.textContent = nome;
-  tit.style.margin = 0;
-
-  const seta = document.createElement("span");
-  seta.textContent = "▶"; // seta para direita inicialmente
-  seta.style.fontSize = "20px";
-
-  header.appendChild(tit);
-  header.appendChild(seta);
-  m.appendChild(header);
-
-  // PDF embutido (inicialmente escondido)
-  const iframe = document.createElement("iframe");
-  iframe.src = dados;
-  iframe.className = "sis-pdf";
-  iframe.setAttribute("sandbox", "allow-same-origin allow-scripts");
-  iframe.style.display = "none"; // começa escondido
-  m.appendChild(iframe);
-
-  // Toggle do iframe
-  header.onclick = () => {
-    const aberto = iframe.style.display === "block";
-    iframe.style.display = aberto ? "none" : "block";
-    seta.textContent = aberto ? "▶" : "🔽";
-  };
-
-  // Botão de excluir (se gerente)
-  if (tipo === "gerente") {
-    const btnExcluir = document.createElement("button");
-    btnExcluir.textContent = "Excluir";
-    btnExcluir.className = "sis-excluir";
-    btnExcluir.onclick = () => {
-      m.remove();
-      salvarMods();
-    };
-    m.appendChild(btnExcluir);
-  }
-
-  document.getElementById("listaModulos").appendChild(m);
-}
-document.getElementById("inputPdf").addEventListener("change", function () {
-  const file = this.files[0];
-  if (file && file.type === "application/pdf") {
-    const reader = new FileReader();
-    reader.onload = function (e) {
-      criarModulo(file.name, e.target.result);
-      salvarMods(); // salva no localStorage
-    };
-    reader.readAsDataURL(file); // converte PDF em base64
-  }
-});
-
-  // botão excluir e append..
+    document.getElementById("inputPdf").addEventListener("change", async function() {
+      const file = this.files[0];
+      if (!file || file.type !== "application/pdf") return;
+      const ref = storage.ref().child(`modulos/${auth.currentUser.email}/${file.name}`);
+      const snap = await ref.put(file);
+      const url = await snap.ref.getDownloadURL();
+      criarModulo(file.name, url);
+      salvarMods(auth.currentUser.email);
+    });
 
     function sair() {
+      auth.signOut();
       localStorage.clear();
       window.location.href = "index.html";
     }
-
-    carregarParags();
-    carregarMods();
   </script>
 </body>
 </html>

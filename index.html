@@ -14,5 +14,31 @@
       <a href="logingerentes.html"><button class="index-botao">GERENTES</button></a>
     </div>
   </div>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js"></script>
+
+  <!-- Inicialização do Firebase -->
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBazO7oV44CG87EGEbz2W29nj1Fj48CCHM",
+      authDomain: "central-avegui.firebaseapp.com",
+      projectId: "central-avegui",
+      storageBucket: "central-avegui.firebasestorage.app",
+      messagingSenderId: "1012641330425",
+      appId: "1:1012641330425:web:b485d941c6907171da1e28"
+    };
+
+    // Inicializa o Firebase
+    firebase.initializeApp(firebaseConfig);
+
+    // Você agora pode usar:
+    // firebase.auth()
+    // firebase.firestore()
+    // firebase.storage()
+  </script>
 </body>
 </html>
